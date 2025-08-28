@@ -1,0 +1,17 @@
+/* I have index.css file that uses Tailwind CSS.
+   I need to ensure that the Tailwind CSS classes are applied correctly
+   and that the configuration is set up properly. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fix for browser autofill background override */
+@layer base {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: inset 0 0 0px 1000px rgb(55, 65, 81) !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}

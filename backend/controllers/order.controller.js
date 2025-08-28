@@ -1,0 +1,96 @@
+// controllers/order.controller.js
+import Order from "../models/order.model.js";
+
+// --- Helper to format order ---
+const formatOrder = (order) => ({
+  id: order._id,
+  user: order.user
+    ? {
+        name: order.user.name,
+        email: order.user.email,
+      }
+    : null,
+  products: order.products.map((p) => ({
+    name: p.product?.name,
+    quantity: p.quantity,
+    price: p.price,
+  })),
+  totalAmount: order.totalAmount,
+  shippingAddress: order.shippingAddress
+    ? {
+        fullName: order.shippingAddress.fullName,
+        street: order.shippingAddress.street,
+        houseNumber: order.shippingAddress.houseNumber,
+        city: order.shippingAddress.city,
+        state: order.shippingAddress.state,
+        postalCode: order.shippingAddress.postalCode,
+        country: order.shippingAddress.country,
+        phone: order.shippingAddress.phone,
+      }
+    : null,
+  createdAt: order.createdAt,
+});
+
+// --- GET all orders ---
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .sort({ createdAt: -1 })
+      .populate("user", "name email")
+      .populate("products.product", "name price");
+
+    res.json(orders.map(formatOrder));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+};
+
+// --- GET single order by ID ---
+export const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate("user", "name email")
+      .populate("products.product", "name price");
+
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    res.json(formatOrder(order));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch order" });
+  }
+};
+
+// --- GET latest order for logged-in user ---
+export const getLatestOrder = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id)
+      return res.status(401).json({ error: "Unauthorized" });
+
+    const order = await Order.findOne({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate("user", "name email")
+      .populate("products.product", "name price");
+
+    if (!order) return res.status(404).json({ error: "No orders found" });
+
+    res.json(formatOrder(order));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch latest order" });
+  }
+};
+
+// --- DELETE order by ID ---
+export const deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    res.json({ message: "Order deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to delete order" });
+  }
+};
