@@ -8,7 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 const AnalyticsTab = () => {
 	const [analyticsData, setAnalyticsData] = useState({
-		users: 100,
+		users: 0,
 		products: 0,
 		totalSales: 0,
 		totalRevenue: 0,
