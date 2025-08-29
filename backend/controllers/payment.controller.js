@@ -143,6 +143,6 @@ export const getPaymentStatus = async (req, res) => {
     res.json({ status: payment.status });
   } catch (err) {
     console.error("Get Payment Status Error:", err);
-    res.status(500).json({ error: "Failed to fetch payment status" });
+    res.status(500).json({ error: "Failed to fetcsh payment status" });
   }
 };
