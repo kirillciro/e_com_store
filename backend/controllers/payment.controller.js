@@ -12,7 +12,6 @@ export const createMolliePayment = async (req, res) => {
       0
     );
 
-    // ✅ Step 1: create Mollie payment
     const payment = await mollie.payments.create({
       amount: { currency: "EUR", value: totalAmount.toFixed(2) },
       description: "Order payment",
