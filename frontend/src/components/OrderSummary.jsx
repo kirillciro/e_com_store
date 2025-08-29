@@ -14,21 +14,33 @@ const OrderSummary = () => {
 
   const handlePayment = async () => {
     try {
+      console.log("Cart items:", cart);
+      console.log("Applied coupon:", coupon);
+      console.log("Subtotal:", subtotal);
+      console.log("Total after discount:", total);
+
       const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5500";
+
+      const payload = {
+        products: cart,
+        couponCode: coupon ? coupon.code : null,
+        totalAmount: total.toFixed(2),
+      };
+
+      console.log("Payload sent to backend:", payload);
 
       const res = await axios.post(
         `${SERVER_URL}/api/payments/mollie/create`,
-        {
-          products: cart,
-          couponCode: coupon ? coupon.code : null,
-        },
+        payload,
         { withCredentials: true }
       );
+
+      console.log("Response from backend:", res.data);
 
       const { paymentUrl } = res.data;
 
       if (paymentUrl) {
-        // Redirect user to Mollie checkout page
+        console.log("Redirecting to Mollie checkout:", paymentUrl);
         window.location.href = paymentUrl;
       } else {
         console.error("No payment URL returned from server");
@@ -77,25 +89,9 @@ const OrderSummary = () => {
           <dd className="text-base font-bold text-blue-400">${formattedTotal}</dd>
         </dl>
 
-        <motion.button
-          className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handlePayment}
-        >
-          Proceed to checkout
-        </motion.button>
 
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-sm font-normal text-gray-400">or</span>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 underline hover:text-blue-300 hover:no-underline"
-          >
-            Continue Shopping
-            <MoveRight size={16} />
-          </Link>
-        </div>
+
+
       </div>
     </motion.div>
   );

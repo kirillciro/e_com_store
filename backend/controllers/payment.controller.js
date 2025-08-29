@@ -6,14 +6,10 @@ import { mollie } from "../lib/mollie.js";
 // --- Create Mollie Payment ---
 export const createMolliePayment = async (req, res) => {
   try {
-    const { products, shipping, paymentMethod, couponCode } = req.body;
-    const totalAmount = products.reduce(
-      (acc, p) => acc + p.price * p.quantity,
-      0
-    );
+    const { products, shipping, paymentMethod, couponCode, total } = req.body;
 
     const payment = await mollie.payments.create({
-      amount: { currency: "EUR", value: totalAmount.toFixed(2) },
+      amount: { currency: "EUR", value: total.toFixed(2) },
       description: "Order payment",
       redirectUrl: `${process.env.CLIENT_URL}/purchase-result`,
       webhookUrl: `https://9bca5128a1b4.ngrok-free.app/api/mollie/webhook`,

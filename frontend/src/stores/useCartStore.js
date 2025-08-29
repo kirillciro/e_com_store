@@ -86,6 +86,7 @@ export const useCartStore = create((set, get) => ({
       total = subtotal - discount;
     }
     set({ subtotal, total });
+    console.log("SUBTOTAL !", { subtotal, total });
   },
 
   updateQuantity: async (productId, quantity) => {

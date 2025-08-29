@@ -1,6 +1,6 @@
 import { useCartStore } from "../stores/useCartStore";
 import { motion } from "framer-motion";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, MoveRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import CartItem from "../components/CartItem";
 import PeopleAlsoBought from "../components/PeopleAlsoBought";
@@ -14,8 +14,13 @@ const ShippingForm = ({ shipping, setShipping }) => {
   const handleChange = (e) => setShipping({ ...shipping, [e.target.name]: e.target.value });
 
   return (
-    <div className="rounded-lg border p-6 shadow-md space-y-4">
-      <h2 className="text-lg font-semibold">Shipping Information</h2>
+                    <motion.div
+      className="space-y-4 rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm sm:p-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <h2 className="text-xl font-semibold text-blue-400">Shipping Information</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {["fullName", "email", "phone", "address", "city", "zip", "country"].map((field) => (
           <input
@@ -24,46 +29,77 @@ const ShippingForm = ({ shipping, setShipping }) => {
             placeholder={field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, " $1")}
             value={shipping[field] || ""}
             onChange={handleChange}
-            className="border rounded p-2 w-full"
+            className="border rounded p-2 w-full bg-transparent border-gray-600 focus:border-blue-500 focus:outline-none"
             required
           />
         ))}
+        
       </div>
-    </div>
+      </motion.div>
+      
+
+    
   );
 };
+
 
 
 const PaymentMethod = ({ paymentMethod, setPaymentMethod, paymentOptions }) => {
+
+
+
   return (
-    <div className="rounded-lg border p-6 shadow-md space-y-4">
-      <h2 className="text-lg font-semibold">Payment Method</h2>
-      <div className="flex flex-wrap gap-2">
-        {paymentOptions.length === 0 && <p>Loading payment methods...</p>}
-        {paymentOptions.map((option) => (
-          <button
-            key={option.id}
-            className={`flex items-center gap-2 px-4 py-2 rounded font-medium transition ${
-              paymentMethod === option.id ? "border-2 border-blue-600" : "border border-gray-300"
-            }`}
-            onClick={() => setPaymentMethod(option.id)}
-          >
-            {option.icon}
-            {option.label}
-          </button>
-        ))}
+    <motion.div
+      className="space-y-4 rounded-2xl border border-gray-700 bg-gray-800 p-6 shadow-lg"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <h2 className="text-xl font-semibold text-blue-400">Payment Method</h2>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {paymentOptions.length === 0 && (
+          <p className="text-gray-400">Loading payment methods...</p>
+        )}
+
+        {paymentOptions.map((option) => {
+          const isActive = paymentMethod === option.id;
+          return (
+            <button
+              key={option.id}
+              onClick={() => setPaymentMethod(option.id)}
+              className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200
+                ${isActive 
+                  ? "border-blue-500 bg-blue-900/40 shadow-md scale-[1.02]" 
+                  : "border-gray-600 bg-gray-700/50 hover:border-blue-400 hover:bg-gray-700"
+                }`}
+            >
+              <div className="text-2xl">{option.icon}</div>
+              <span className="font-light text-gray-200">{option.label}</span>
+            </button>
+          );
+        })}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 
+
 const CartPage = () => {
-  const { cart } = useCartStore();
+  const { cart, total } = useCartStore();
   const [shipping, setShipping] = useState({});
   const [paymentMethod, setPaymentMethod] = useState("");
   const [paymentOptions, setPaymentOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+const paymentButtonColors = {
+  ideal: "bg-green-600 hover:bg-green-700",
+  paypal: "bg-yellow-500 hover:bg-yellow-600 text-black", // PayPal is usually yellow
+  creditcard: "bg-purple-600 hover:bg-purple-700",
+  klarna: "bg-pink-600 hover:bg-pink-700",
+  bancontact: "bg-blue-600 hover:bg-blue-700",
+};
 
  useEffect(() => {
   const fetchMethods = async () => {
@@ -114,7 +150,7 @@ const CartPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ products: cart, shipping, paymentMethod }),
+        body: JSON.stringify({ products: cart, shipping, paymentMethod, total }),
       });
 
       const data = await res.json();
@@ -155,32 +191,59 @@ const CartPage = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <OrderSummary />
+                        <GiftCouponCard />
             <ShippingForm shipping={shipping} setShipping={setShipping} />
+
+
             <PaymentMethod
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
               paymentOptions={paymentOptions}
             />
-            <GiftCouponCard />
 
-            <button
-              onClick={handleCheckout}
-              disabled={loading || !paymentMethod}
-              className="w-full py-3 bg-blue-600 text-white rounded flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loading
-                ? "Redirecting..."
-                : <>Pay with {paymentOptions.find(m => m.id === paymentMethod)?.label || paymentMethod}</>}
-            </button>
+
+                <motion.div
+      className="space-y-4 rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm sm:p-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+
+
+
+
+
+
+  <motion.button
+  onClick={handleCheckout}
+            whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+  disabled={loading || !paymentMethod}
+  className={`flex w-full items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-lg font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300
+    ${paymentButtonColors[paymentMethod] || "bg-blue-600 hover:bg-blue-700"}`}
+>
+  {loading
+    ? "Redirecting..."
+    : <>Pay with {paymentOptions.find((m) => m.id === paymentMethod)?.label || paymentMethod}</>}
+ </motion.button>
+
+                    <div className="flex items-center justify-center gap-2">
+          <span className="text-sm font-normal text-gray-400">or</span>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 underline hover:text-blue-300 hover:no-underline"
+          >
+            Continue Shopping
+            <MoveRight size={16} />
+          </Link>
+        </div>
+        </motion.div>
           </motion.div>
         </div>
       </div>
     </div>
   );
 };
-
-
-export default CartPage;
 
 
 const EmptyCartUI = () => (
@@ -198,3 +261,5 @@ const EmptyCartUI = () => (
     </Link>
   </motion.div>
 );
+
+export default CartPage;
