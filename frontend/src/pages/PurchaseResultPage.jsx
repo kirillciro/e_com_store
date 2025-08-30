@@ -8,53 +8,46 @@ const PurchaseResultPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const verifyPayment = async () => {
+    const checkPayment = async () => {
       const paymentId = searchParams.get("paymentId");
-      if (!paymentId) return navigate("/");
+      if (!paymentId) {
+        navigate("/purchase-cancel");
+        return;
+      }
 
-      const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5500";
+      const SERVER_URL =
+        import.meta.env.VITE_SERVER_URL || "http://localhost:5500";
 
-      let attempts = 0;
-      const maxAttempts = 10; // 10 x 500ms = 5 seconds
-      const interval = 500; // milliseconds
+      try {
+        const res = await axios.get(
+          `${SERVER_URL}/api/mollie/verify/${paymentId}`,
+          { withCredentials: true }
+        );
 
-      const checkStatus = async () => {
-        try {
-          const res = await axios.get(`${SERVER_URL}/api/mollie/verify/${paymentId}`, {
-            withCredentials: true,
-          });
-
-          if (res.data.status === "paid") {
-            navigate("/purchase-success");
-          } else if (
-            res.data.status === "canceled" ||
-            res.data.status === "failed"
-          ) {
-            navigate("/purchase-cancel");
-          } else {
-            attempts++;
-            if (attempts < maxAttempts) {
-              setTimeout(checkStatus, interval);
-            } else {
-              // fallback if still pending after timeout
-              navigate("/purchase-cancel");
-            }
-          }
-        } catch (err) {
-          console.error("Error verifying payment:", err);
+        if (res.data.status === "paid") {
+          navigate("/purchase-success");
+        } else {
           navigate("/purchase-cancel");
-        } finally {
-          setLoading(false);
         }
-      };
-
-      checkStatus();
+      } catch (err) {
+        console.error("Payment verification failed:", err);
+        navigate("/purchase-cancel");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    verifyPayment();
+    checkPayment();
   }, [searchParams, navigate]);
 
-  if (loading) return <p className="text-center mt-20 text-white">Verifying payment...</p>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-white text-lg">Processing your purchase...</div>
+      </div>
+    );
+  }
+
   return null;
 };
 

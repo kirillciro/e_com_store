@@ -117,8 +117,6 @@ export const handleMollieWebhook = async (req, res) => {
           console.error("Failed to deactivate coupon:", couponErr);
         }
       }
-    } else if (payment.status === "open") {
-      console.log(`Order ${existingOrder._id} remains open ⚠️`);
     } else {
       await existingOrder.deleteOne();
       console.log(
