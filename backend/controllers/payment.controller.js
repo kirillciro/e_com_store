@@ -88,12 +88,8 @@ export const handleMollieWebhook = async (req, res) => {
     // ✅ Find existing order created earlier
     const existingOrder = await Order.findOne({ paymentId: payment.id });
 
-    if (!existingOrder) {
-      console.error(`No order found for paymentId ${payment.id}`);
-      return res.status(404).send("Order not found");
-    }
-
     // ✅ Update order status when Mollie confirms payment
+
     if (payment.status === "paid") {
       existingOrder.status = "paid";
       existingOrder.shippingAddress = {
@@ -107,7 +103,7 @@ export const handleMollieWebhook = async (req, res) => {
       };
 
       await existingOrder.save();
-      console.log(`Order ${existingOrder._id} updated to paid`);
+      console.log(`Order ${existingOrder._id} updated to paid ✅`);
 
       // Deactivate coupon if used
       if (metadata.couponCode) {
@@ -121,6 +117,13 @@ export const handleMollieWebhook = async (req, res) => {
           console.error("Failed to deactivate coupon:", couponErr);
         }
       }
+    } else if (payment.status === "open") {
+      console.log(`Order ${existingOrder._id} remains open ⚠️`);
+    } else {
+      await existingOrder.deleteOne();
+      console.log(
+        `Order ${existingOrder._id} removed due to payment ${payment.status} ❌`
+      );
     }
 
     res.status(200).send("[accepted]");

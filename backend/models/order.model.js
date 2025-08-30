@@ -30,8 +30,8 @@ const orderSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["open", "pending", "paid", "failed", "cancelled"],
-      default: "pending",
+      enum: ["open", "paid", "failed", "cancelled"],
+      default: "open",
     },
 
     paymentId: { type: String, index: true }, // Mollie payment.id
