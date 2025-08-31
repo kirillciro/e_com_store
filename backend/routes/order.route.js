@@ -25,7 +25,7 @@ router.get("/latest", protectRoute, async (req, res) => {
 });
 
 // --- Admin / All orders ---
-router.get("/", getAllOrders); // protect for admin if needed
+router.get("/", getAllOrders); // protect Admin if needed
 
 // --- Single order by ID ---
 router.get("/:id", getOrderById);
