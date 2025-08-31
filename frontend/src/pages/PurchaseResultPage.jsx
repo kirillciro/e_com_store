@@ -1,72 +1,61 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
-import axios from "axios";
+import { useOrderStore } from "../stores/useOrderStore";
 
 const PurchaseResultPage = () => {
   const navigate = useNavigate();
+  const { currentOrder, setCurrentOrder, fetchUserOrderStatus } = useOrderStore();
   const [loading, setLoading] = useState(true);
-  const interval = 3000; // wait 3 seconds before first check
-  const extraWait = 5000; // extra 5s if status remains open
   const timerRef = useRef(null);
 
   useEffect(() => {
     const checkOrderStatus = async () => {
       try {
-        // Fetch latest order from backend
-        const res = await axios.get("http://localhost:5500/api/orders/latest", {
-          withCredentials: true,
-        });
+        // Always fetch the latest order from backend
+        const order = await fetchUserOrderStatus(currentOrder?._id);
 
-        const order = res.data;
-
-        // If no order exists (already deleted), redirect to cancel page
-        if (!order || !order.status) {
-          console.log("No latest order found → redirecting to cancel page now");
+        if (!order) {
+          console.log("No order found → redirecting to cancel");
           setLoading(false);
           navigate("/purchase-cancel");
           return;
         }
 
-        const { status } = order;
+        setCurrentOrder(order);
+        const status = order.status?.toLowerCase().trim();
+
         console.log(`Order status checked: ${status}`);
 
         if (status === "paid") {
           setLoading(false);
           navigate("/purchase-success");
         } else if (status === "open") {
-          console.log(
-            "Order still open, waiting extra 5s for bank/payment verification..."
-          );
-          // Wait extra 5s to simulate bank/payment verification
-          timerRef.current = setTimeout(checkOrderStatus, extraWait);
+          console.log("Order still open, retrying in 5s...");
+          timerRef.current = setTimeout(checkOrderStatus, 5000);
         } else if (["failed", "canceled", "expired"].includes(status)) {
-          // Backend already deletes these orders; frontend just redirects
+          console.log("Order is faulty → redirecting to cancel");
+          setLoading(false);
+          navigate("/purchase-cancel");
+        } else {
+          console.log("Unhandled status → redirecting to cancel");
           setLoading(false);
           navigate("/purchase-cancel");
         }
       } catch (err) {
-        // If 404 or order not found, handle gracefully
-        if (err.response && err.response.status === 404) {
-          console.log(
-            "No latest order found (404) → redirecting to cancel page now"
-          );
-        } else {
-          console.error("Error fetching latest order:", err);
-        }
+        console.error("Error checking order status:", err);
         setLoading(false);
         navigate("/purchase-cancel");
       }
     };
 
-    // Start initial check after 3s
-    timerRef.current = setTimeout(checkOrderStatus, interval);
+    // Start initial check immediately
+    checkOrderStatus();
 
     return () => clearTimeout(timerRef.current);
-  }, [navigate]);
+  }, [currentOrder?._id, fetchUserOrderStatus, navigate, setCurrentOrder]);
 
-  if (loading) return <LoadingSpinner />;
-  return null;
+  return loading ? <LoadingSpinner /> : null;
 };
 
 export default PurchaseResultPage;

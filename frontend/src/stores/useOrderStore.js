@@ -4,10 +4,30 @@ import toast from "react-hot-toast";
 
 export const useOrderStore = create((set) => ({
   orders: [],
+  currentOrder: null,
   loading: false,
   error: null,
 
   setOrders: (orders) => set({ orders }),
+  setCurrentOrder: (order) => set({ currentOrder: order }),
+
+  fetchUserOrderStatus: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axios.get(
+        "http://localhost:5500/api/orders/latest",
+        {
+          withCredentials: true, // send cookies automatically
+        }
+      );
+
+      set({ currentOrder: response.data, loading: false });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching order status:", error);
+      set({ error: "Failed to fetch order status", loading: false });
+    }
+  },
 
   fetchAllOrders: async () => {
     set({ loading: true, error: null });

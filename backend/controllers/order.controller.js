@@ -65,20 +65,16 @@ export const getOrderById = async (req, res) => {
 // --- GET latest order for logged-in user ---
 export const getLatestOrder = async (req, res) => {
   try {
-    if (!req.user || !req.user._id)
-      return res.status(401).json({ error: "Unauthorized" });
+    // Find the latest order (no auth middleware)
+    const latestOrder = await Order.findOne().sort({ createdAt: -1 }).lean();
 
-    const order = await Order.findOne({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .populate("user", "name email")
-      .populate("products.product", "name price");
+    if (!latestOrder)
+      return res.status(404).json({ message: "No orders found" });
 
-    if (!order) return res.status(404).json({ error: "No orders found" });
-
-    res.json(formatOrder(order));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch latest order" });
+    res.json(latestOrder);
+  } catch (err) {
+    console.error("Failed to fetch latest order:", err);
+    res.status(500).json({ message: "Failed to fetch latest order" });
   }
 };
 
