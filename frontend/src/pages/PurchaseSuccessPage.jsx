@@ -89,7 +89,7 @@ const PurchaseSuccessPage = () => {
              rounded-lg transition duration-300 flex items-center justify-center"
             >
               <HandHeart className="mr-2" size={18} />
-              Thanks for trusting us!
+              Thanks for trusting us !
             </button>
 
             <Link
