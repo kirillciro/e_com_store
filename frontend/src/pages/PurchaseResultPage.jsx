@@ -1,53 +1,71 @@
-import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "../components/LoadingSpinner";
 import axios from "axios";
 
 const PurchaseResultPage = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const interval = 3000; // wait 3 seconds before first check
+  const extraWait = 5000; // extra 5s if status remains open
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    const checkPayment = async () => {
-      const paymentId = searchParams.get("paymentId");
-      if (!paymentId) {
-        navigate("/purchase-cancel");
-        return;
-      }
-
-      const SERVER_URL =
-        import.meta.env.VITE_SERVER_URL || "http://localhost:5500";
-
+    const checkOrderStatus = async () => {
       try {
-        const res = await axios.get(
-          `${SERVER_URL}/api/mollie/verify/${paymentId}`,
-          { withCredentials: true }
-        );
+        // Fetch latest order from backend
+        const res = await axios.get("http://localhost:5500/api/orders/latest", {
+          withCredentials: true,
+        });
 
-        if (res.data.status === "paid") {
+        const order = res.data;
+
+        // If no order exists (already deleted), redirect to cancel page
+        if (!order || !order.status) {
+          console.log("No latest order found → redirecting to cancel page now");
+          setLoading(false);
+          navigate("/purchase-cancel");
+          return;
+        }
+
+        const { status } = order;
+        console.log(`Order status checked: ${status}`);
+
+        if (status === "paid") {
+          setLoading(false);
           navigate("/purchase-success");
-        } else {
+        } else if (status === "open") {
+          console.log(
+            "Order still open, waiting extra 5s for bank/payment verification..."
+          );
+          // Wait extra 5s to simulate bank/payment verification
+          timerRef.current = setTimeout(checkOrderStatus, extraWait);
+        } else if (["failed", "canceled", "expired"].includes(status)) {
+          // Backend already deletes these orders; frontend just redirects
+          setLoading(false);
           navigate("/purchase-cancel");
         }
       } catch (err) {
-        console.error("Payment verification failed:", err);
-        navigate("/purchase-cancel");
-      } finally {
+        // If 404 or order not found, handle gracefully
+        if (err.response && err.response.status === 404) {
+          console.log(
+            "No latest order found (404) → redirecting to cancel page now"
+          );
+        } else {
+          console.error("Error fetching latest order:", err);
+        }
         setLoading(false);
+        navigate("/purchase-cancel");
       }
     };
 
-    checkPayment();
-  }, [searchParams, navigate]);
+    // Start initial check after 3s
+    timerRef.current = setTimeout(checkOrderStatus, interval);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-lg">Processing your purchase...</div>
-      </div>
-    );
-  }
+    return () => clearTimeout(timerRef.current);
+  }, [navigate]);
 
+  if (loading) return <LoadingSpinner />;
   return null;
 };
 

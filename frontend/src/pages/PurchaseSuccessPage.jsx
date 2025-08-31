@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, HandHeart } from "lucide-react";
+import { ArrowRight, CheckCircle, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCartStore } from "../stores/useCartStore";
@@ -57,7 +57,7 @@ const PurchaseSuccessPage = () => {
       <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-xl overflow-hidden relative z-10">
         <div className="p-6 sm:p-8">
           <div className="flex justify-center">
-            <CheckCircle className="text-blue-400 w-16 h-16 mb-4" />
+            <CheckCircle className="text-green-500 w-16 h-16 mb-4" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-center text-blue-400 mb-2">
             Purchase Successful!
@@ -84,13 +84,13 @@ const PurchaseSuccessPage = () => {
           )}
 
           <div className="space-y-4">
-            <button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4
-             rounded-lg transition duration-300 flex items-center justify-center"
+            <div
+              className="w-full bg-blue-600 text-white font-bold py-2 px-4
+             rounded-lg transition duration-300 flex items-center justify-center cursor-default"
             >
-              <HandHeart className="mr-2" size={18} />
+              <Heart className="mr-2" size={18} />
               Thanks for trusting us !
-            </button>
+            </div>
 
             <Link
               to="/"
