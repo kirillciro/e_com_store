@@ -9,7 +9,7 @@ const categories = [
 	{ href: "/suits", name: "Suits", imageUrl: "/suits.jpg", title: "Elegant Suits" },
 	{ href: "/bags", name: "Bags", imageUrl: "/bags.jpg", title: "Trendy Bags" },
 ];
-
+const paypal = "paypal"
 const HomePage = () => {
         return <>
         <div className="relative min-h-screen text-white overflow-hidden">

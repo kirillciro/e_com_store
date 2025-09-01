@@ -72,50 +72,6 @@ export const createMolliePayment = async (req, res) => {
 
 // --- Handle Mollie Webhook ---
 export const handleMollieWebhook = async (req, res) => {
-<<<<<<< HEAD
-  console.log("🔔 Mollie webhook received:", req.body);
-
-  try {
-    const { id } = req.body || {};
-    if (!id) return res.status(400).send("Missing payment ID");
-
-    // Fetch payment details from Mollie
-    const payment = await mollie.payments.get(id);
-    console.log("Payment received:", payment.id, "Status:", payment.status);
-
-    // Find the order by paymentId
-    const existingOrder = await Order.findOne({ paymentId: payment.id });
-
-    if (!existingOrder) {
-      console.log(`No order found for payment ${payment.id}`);
-      return res.status(404).send("Order not found");
-    }
-
-    // Handle payment statuses
-    switch (payment.status) {
-      case "paid":
-        existingOrder.status = "paid";
-        await existingOrder.save();
-        console.log(`Order ${existingOrder._id} updated to paid ✅`);
-        break;
-
-      case "open":
-        console.log(`Order ${existingOrder._id} is still open ⏳`);
-        // do nothing, wait for next webhook
-        break;
-
-      case "failed":
-      case "canceled":
-      case "expired":
-        await existingOrder.deleteOne();
-        console.log(
-          `Order ${existingOrder._id} removed due to ${payment.status} ❌`
-        );
-        break;
-
-      default:
-        console.log(`Unhandled status: ${payment.status}`);
-=======
   const { id } = req.body || {};
   if (!id) return res.status(400).send("Missing payment ID");
 
@@ -151,14 +107,13 @@ export const handleMollieWebhook = async (req, res) => {
       console.log(`Order ${existingOrder._id} updated to ${payment.status} ❌`);
     } else {
       console.log(`Order ${existingOrder._id} remains open ⏳`);
->>>>>>> restore-purchase-result
     }
   } catch (err) {
     console.error("Mollie Webhook processing error:", err);
   }
 };
 
-// --- Get Payment Status for Frontend ---
+// --- Get Payment Status for Frontend -------
 export const getPaymentStatus = async (req, res) => {
   try {
     const { id } = req.params; // paymentId from frontend
