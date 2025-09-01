@@ -42,8 +42,21 @@ const PurchaseResultPage = () => {
           timerRef.current = setTimeout(checkOrderStatus, extraWait);
         } else if (["failed", "canceled", "expired"].includes(status)) {
           // Backend already deletes these orders; frontend just redirects
-          setLoading(false);
-          navigate("/purchase-cancel");
+         try {
+    // Delete the order after detecting failed/canceled/expired
+    await axios.delete(`http://localhost:5500/api/orders/${order._id}`, {
+      withCredentials: true,
+    });
+    console.log(`Order ${order._id} deleted from frontend`);
+  } catch (err) {
+    console.error("Error deleting order:", err);
+  }
+
+  setLoading(false);
+  navigate("/purchase-cancel");
+
+          
+          
         }
       } catch (err) {
         // If 404 or order not found, handle gracefully

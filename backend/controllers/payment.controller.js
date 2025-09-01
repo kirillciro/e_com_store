@@ -63,32 +63,21 @@ export const createMolliePayment = async (req, res) => {
 
 // --- Handle Mollie Webhook ---
 export const handleMollieWebhook = async (req, res) => {
-  console.log("🔔 Mollie webhook received:", req.body);
+  const { id } = req.body || {};
+  if (!id) return res.status(400).send("Missing payment ID");
+
+  res.status(200).send("[accepted]"); // respond immediately to Mollie
+
   try {
-    const { id } = req.body || {};
-
-    if (!id) {
-      console.error("Webhook called without payment ID", req.body);
-      return res.status(400).send("Missing payment ID");
-    }
-
-    // Fetch payment details from Mollie
     const payment = await mollie.payments.get(id);
-    console.log(
-      "Webhook Payment Received:",
-      payment.id,
-      "Payment status:",
-      payment.status
-    );
-
     const metadata = payment.metadata || {};
-    const products = metadata.products ? JSON.parse(metadata.products) : [];
     const shipping = metadata.shipping ? JSON.parse(metadata.shipping) : {};
 
-    // ✅ Find existing order created earlier
     const existingOrder = await Order.findOne({ paymentId: payment.id });
-
-    // ✅ Update order status when Mollie confirms payment
+    if (!existingOrder) {
+      console.log(`No order found for payment ID ${payment.id}`);
+      return;
+    }
 
     if (payment.status === "paid") {
       existingOrder.status = "paid";
@@ -101,33 +90,17 @@ export const handleMollieWebhook = async (req, res) => {
         postalCode: shipping.zip || "",
         country: shipping.country || "",
       };
-
       await existingOrder.save();
       console.log(`Order ${existingOrder._id} updated to paid ✅`);
-
-      // Deactivate coupon if used
-      if (metadata.couponCode) {
-        try {
-          await Coupon.findOneAndUpdate(
-            { code: metadata.couponCode, userId: metadata.userId },
-            { isActive: false }
-          );
-          console.log(`Coupon ${metadata.couponCode} deactivated`);
-        } catch (couponErr) {
-          console.error("Failed to deactivate coupon:", couponErr);
-        }
-      }
+    } else if (["canceled", "failed", "expired"].includes(payment.status)) {
+      existingOrder.status = payment.status;
+      await existingOrder.save(); // or deleteOne() if preferred
+      console.log(`Order ${existingOrder._id} updated to ${payment.status} ❌`);
     } else {
-      await existingOrder.deleteOne();
-      console.log(
-        `Order ${existingOrder._id} removed due to payment ${payment.status} ❌`
-      );
+      console.log(`Order ${existingOrder._id} remains open ⏳`);
     }
-
-    res.status(200).send("[accepted]");
   } catch (err) {
-    console.error("Mollie Webhook Error:", err);
-    res.status(500).send("Internal Server Error");
+    console.error("Mollie Webhook processing error:", err);
   }
 };
 

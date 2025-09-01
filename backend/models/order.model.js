@@ -30,7 +30,7 @@ const orderSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["open", "paid", "failed", "cancelled"],
+      enum: ["open", "paid", "failed", "canceled"],
       default: "open",
     },
 

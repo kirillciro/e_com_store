@@ -85,13 +85,14 @@ export const getLatestOrder = async (req, res) => {
 // --- DELETE order by ID ---
 export const deleteOrder = async (req, res) => {
   try {
-    const order = await Order.findByIdAndDelete(req.params.id);
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    const { id } = req.params;
+    const order = await Order.findById(id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
-    console.log(`Order ${order._id} deleted successfully ❌`);
-    res.json({ message: "Order deleted successfully" });
-  } catch (error) {
-    console.error(error);
+    await order.deleteOne();
+    res.status(200).json({ message: "Order deleted" });
+  } catch (err) {
+    console.error("Delete Order Error:", err);
     res.status(500).json({ error: "Failed to delete order" });
   }
 };
