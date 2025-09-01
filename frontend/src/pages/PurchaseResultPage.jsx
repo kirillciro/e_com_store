@@ -34,6 +34,7 @@ const PurchaseResultPage = () => {
           console.log("Order still open, retrying in 5s...");
           timerRef.current = setTimeout(checkOrderStatus, 5000);
         } else if (["failed", "canceled", "expired"].includes(status)) {
+<<<<<<< HEAD
           console.log("Order is faulty → redirecting to cancel");
           setLoading(false);
           navigate("/purchase-cancel");
@@ -41,6 +42,24 @@ const PurchaseResultPage = () => {
           console.log("Unhandled status → redirecting to cancel");
           setLoading(false);
           navigate("/purchase-cancel");
+=======
+          // Backend already deletes these orders; frontend just redirects
+         try {
+    // Delete the order after detecting failed/canceled/expired
+    await axios.delete(`http://localhost:5500/api/orders/${order._id}`, {
+      withCredentials: true,
+    });
+    console.log(`Order ${order._id} deleted from frontend`);
+  } catch (err) {
+    console.error("Error deleting order:", err);
+  }
+
+  setLoading(false);
+  navigate("/purchase-cancel");
+
+          
+          
+>>>>>>> restore-purchase-result
         }
       } catch (err) {
         console.error("Error checking order status:", err);

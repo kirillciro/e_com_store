@@ -72,6 +72,7 @@ export const createMolliePayment = async (req, res) => {
 
 // --- Handle Mollie Webhook ---
 export const handleMollieWebhook = async (req, res) => {
+<<<<<<< HEAD
   console.log("🔔 Mollie webhook received:", req.body);
 
   try {
@@ -114,12 +115,46 @@ export const handleMollieWebhook = async (req, res) => {
 
       default:
         console.log(`Unhandled status: ${payment.status}`);
+=======
+  const { id } = req.body || {};
+  if (!id) return res.status(400).send("Missing payment ID");
+
+  res.status(200).send("[accepted]"); // respond immediately to Mollie
+
+  try {
+    const payment = await mollie.payments.get(id);
+    const metadata = payment.metadata || {};
+    const shipping = metadata.shipping ? JSON.parse(metadata.shipping) : {};
+
+    const existingOrder = await Order.findOne({ paymentId: payment.id });
+    if (!existingOrder) {
+      console.log(`No order found for payment ID ${payment.id}`);
+      return;
     }
 
-    res.status(200).send("[accepted]");
+    if (payment.status === "paid") {
+      existingOrder.status = "paid";
+      existingOrder.shippingAddress = {
+        fullName: shipping.fullName || "",
+        email: shipping.email || "",
+        phone: shipping.phone || "",
+        street: shipping.address || "",
+        city: shipping.city || "",
+        postalCode: shipping.zip || "",
+        country: shipping.country || "",
+      };
+      await existingOrder.save();
+      console.log(`Order ${existingOrder._id} updated to paid ✅`);
+    } else if (["canceled", "failed", "expired"].includes(payment.status)) {
+      existingOrder.status = payment.status;
+      await existingOrder.save(); // or deleteOne() if preferred
+      console.log(`Order ${existingOrder._id} updated to ${payment.status} ❌`);
+    } else {
+      console.log(`Order ${existingOrder._id} remains open ⏳`);
+>>>>>>> restore-purchase-result
+    }
   } catch (err) {
-    console.error("Mollie Webhook Error:", err);
-    res.status(500).send("Internal Server Error");
+    console.error("Mollie Webhook processing error:", err);
   }
 };
 
