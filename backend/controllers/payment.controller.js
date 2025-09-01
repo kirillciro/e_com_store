@@ -12,7 +12,7 @@ export const createMolliePayment = async (req, res) => {
       amount: { currency: "EUR", value: total.toFixed(2) },
       description: "Order payment",
       redirectUrl: `${process.env.CLIENT_URL}/purchase-result`,
-      webhookUrl: `https://9bca5128a1b4.ngrok-free.app/api/mollie/webhook`,
+      webhookUrl: `https://216824a9cdad.ngrok-free.app/api/mollie/webhook`,
       method: paymentMethod || undefined,
       metadata: {
         userId: req.user._id.toString(),
