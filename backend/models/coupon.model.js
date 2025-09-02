@@ -16,6 +16,7 @@ const couponSchema = new mongoose.Schema(
     expirationDate: {
       type: Date,
       required: true,
+      default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
     },
     isActive: {
       type: Boolean,

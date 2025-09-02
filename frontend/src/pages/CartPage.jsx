@@ -190,9 +190,9 @@ const paymentButtonColors = {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <OrderSummary />
+                        <OrderSummary />
                         <GiftCouponCard />
-            <ShippingForm shipping={shipping} setShipping={setShipping} />
+                        <ShippingForm shipping={shipping} setShipping={setShipping} />
 
 
             <PaymentMethod
