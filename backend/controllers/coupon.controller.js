@@ -1,6 +1,17 @@
 import Coupon from "../models/coupon.model.js";
 import User from "../models/user.model.js";
 
+export const getAllCoupons = async (req, res) => {
+  try {
+    // Populate userId with only the email field
+    const coupons = await Coupon.find().populate("userId", "email");
+    res.json(coupons);
+  } catch (error) {
+    console.error("Error fetching coupons:", error);
+    res.status(500).json({ error: "Failed to fetch coupons" });
+  }
+};
+
 export const getCoupons = async (req, res, next) => {
   try {
     const coupon = await Coupon.findOne({
@@ -50,7 +61,7 @@ export const createCoupon = async (req, res, next) => {
   try {
     const { code, discountPercentage, email, expirationDate } = req.body;
 
-    // find user by email
+    // ✅ find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res
@@ -58,19 +69,25 @@ export const createCoupon = async (req, res, next) => {
         .json({ message: "User not found with that email" });
     }
 
-    // create coupon
+    // ✅ create coupon (don't store raw email, only userId)
     const coupon = new Coupon({
       code,
       discountPercentage,
-      email,
-      userId: user._id,
-      expirationDate: expirationDate,
+      userId: user._id, // Proper ObjectId ref
+      expirationDate:
+        expirationDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // fallback 7 days
     });
 
     await coupon.save();
 
-    console.log("✅ Coupon created:", coupon);
-    res.status(201).json(coupon);
+    // ✅ populate user email before sending back
+    const populatedCoupon = await Coupon.findById(coupon._id).populate(
+      "userId",
+      "email"
+    );
+
+    console.log("✅ Coupon created:", populatedCoupon);
+    res.status(201).json(populatedCoupon);
   } catch (error) {
     console.error("Error creating coupon:", error);
     next(error);
