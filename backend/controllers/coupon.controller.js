@@ -93,3 +93,20 @@ export const createCoupon = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteCoupon = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const deletedCoupon = await Coupon.findByIdAndDelete(id);
+
+    if (!deletedCoupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+
+    res.json({ message: "Coupon deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting coupon:", error);
+    next(error);
+  }
+};

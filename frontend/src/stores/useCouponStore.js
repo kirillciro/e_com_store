@@ -25,7 +25,7 @@ export const useCouponStore = create((set) => ({
   deleteCoupon: async (id) => {
     set({ loading: true });
     try {
-      await axios.delete(`/coupons/${id}`);
+      await axios.delete(`/coupons/delete/${id}`);
       set((prevState) => ({
         coupons: prevState.coupons.filter((c) => c._id !== id),
         loading: false,

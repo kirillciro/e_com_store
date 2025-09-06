@@ -3,6 +3,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useCouponStore } from "../stores/useCouponStore";
+import { Trash } from "lucide-react";
 
 const CouponsTab = () => {
   const { coupons, fetchAllCoupons, createCoupon, deleteCoupon } = useCouponStore();
@@ -11,10 +12,20 @@ const CouponsTab = () => {
   const [email, setEmail] = useState("");
 
 
-
   useEffect(() => {
     fetchAllCoupons();
   }, [fetchAllCoupons] );
+
+  const handleCreate = async () => {
+  await createCoupon(code, discount, email);
+  setCode("");
+  setDiscount("");
+  setEmail("");
+};
+
+const handleDelete = async (id) => {
+  await deleteCoupon(id);
+};
 
 
   return <>
@@ -64,7 +75,7 @@ const CouponsTab = () => {
         </div>
 
         <button
-          onClick={() => createCoupon(code, discount, email)}
+          onClick={() => handleCreate()}
           className="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300"
         >
           Create Coupon
@@ -75,7 +86,7 @@ const CouponsTab = () => {
         </motion.div>
 
         <motion.div
-            className="bg-gray-800 shadow-lg rounded-lg overflow-hidden max-w-full mx-auto p-6 mt-8"
+            className="bg-gray-800 shadow-lg rounded-lg overflow-hidden max-w-fu;` mx-auto p-6 mt-8"
             initial={{opacity: 0, y:20}}
             animate={{opacity: 1, y:0}}
             transition={{duration: 0.8, delay: 0.4}}
@@ -112,6 +123,15 @@ const CouponsTab = () => {
                             <td className='px-6 py-4 whitespace-nowrap'>
                                 <div className='text-sm text-gray-300'>{new Date(coupon.expirationDate).toLocaleDateString()}</div>
                             </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <button
+                              onClick={() => handleDelete(coupon._id)}
+                              className="flex  text-red-400 hover:text-red-600 transition-colors"
+                            >
+                              <Trash className=" w-6 h-6" />
+                            </button>
+                            </td>
+                            
                         </tr>
                     ))}
                 </tbody>

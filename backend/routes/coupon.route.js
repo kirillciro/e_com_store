@@ -5,13 +5,15 @@ import {
   getCoupons,
   validateCoupon,
   getAllCoupons,
+  deleteCoupon,
 } from "../controllers/coupon.controller.js";
 
 const router = express.Router();
 
 router.get("/all", protectRoute, getAllCoupons); // Get all coupons (admin only)
 router.get("/", protectRoute, getCoupons); // Get all cou
-router.post("/create", createCoupon); // Create a new coupon
+router.post("/create", protectRoute, createCoupon); // Create a new coupon
 router.post("/validate", protectRoute, validateCoupon); // Validate a coupon
+router.delete("/delete/:id", protectRoute, deleteCoupon);
 
 export default router;
