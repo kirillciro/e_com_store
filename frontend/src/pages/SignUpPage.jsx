@@ -4,10 +4,11 @@ import { UserPlus, Mail, Lock, User, ArrowRight, Loader } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
-import { set } from "mongoose";
+import { useUserStore } from "../stores/useUserStore";
 
 const SignUpPage = () => {
   const navigate = useNavigate();
+  const { login } = useUserStore(); // Zustand login function
 
   const [formData, setFormData] = useState({
     name: "",
@@ -26,24 +27,23 @@ const SignUpPage = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post("/auth/signup", {
+      
+      await axios.post("/auth/signup", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
       });
 
-
-      // clear form
-      setFormData({ name: "", email: "", password: "", confirmPassword: "" });
-
-
       toast.success("Account created successfully");
 
-       
-      setTimeout(() => {
-	navigate("/login");
-      }, 1500);
       
+      setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+
+      
+      await login({ email: formData.email, password: formData.password });
+
+      setTimeout(() => { navigate("/"); }, 1500); 
+
     } catch (err) {
       toast.error(err.response?.data?.message || "Signup failed");
     } finally {
@@ -72,7 +72,7 @@ const SignUpPage = () => {
       >
         <div className="bg-gray-900 py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Input */}
+            {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-300">
                 Full name
@@ -94,7 +94,7 @@ const SignUpPage = () => {
               </div>
             </div>
 
-            {/* Email Input */}
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-300">
                 Email address
